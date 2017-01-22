@@ -22,6 +22,10 @@ class Source(Base):
         vars = context['vars']
         self.learning_texts = vars.get(
             'deoplete#sources#whd#learning_texts', ['/tmp/obama08.txt'])
+        # Build up the dictionary during startup 
+        # TODO refresh?
+        words = self._get_words_from_file()
+        self.mc_knowledge = self._generate_dictionary(words)
 
     # Complete position
     def get_complete_position(self, context):
@@ -53,8 +57,6 @@ class Source(Base):
         return knowledge
         
     def _generate_hints(self, inputLine):
-        words = self._get_words_from_file()
-        knowledge = self._generate_dictionary(words)
         
         # get the most recent two words (lowercase)
         inputWords = [x.lower() for x in re.findall(r"[\w']+", inputLine)]
@@ -64,7 +66,7 @@ class Source(Base):
 
         inputKey=self.mc_delimiter.join(inputWords[-self.mc_order:])
 
-        hints = knowledge.setdefault(inputKey, [])
+        hints = self.mc_knowledge.setdefault(inputKey, [])
         
         return hints
 
