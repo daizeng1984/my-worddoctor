@@ -38,8 +38,13 @@ class MarkovChain(WhdStrategy):
         knowledge = {}
         for i in range(self.mc_order, len(lowercaseWords)) :
             key = self.mc_delimiter.join(lowercaseWords[i-self.mc_order:i])
-            knowledge.setdefault(key, set([]))
-            knowledge[key].add(lowercaseWords[i])
+            knowledge.setdefault(key, {})
+            knowledge[key].setdefault(lowercaseWords[i], 0)
+            knowledge[key][lowercaseWords[i]] = knowledge[key][lowercaseWords[i]] + 1;
+
+        # Sort the words based on frequency
+        for key,val in knowledge.items():
+            knowledge[key]=sorted(list(val.keys()), key=lambda k:val[k])
 
         return knowledge
         
@@ -53,6 +58,6 @@ class MarkovChain(WhdStrategy):
 
         inputKey=self.mc_delimiter.join(inputWords[-self.mc_order:])
 
-        hints = self.mc_knowledge.setdefault(inputKey, [])
+        hints = self.mc_knowledge.setdefault(inputKey, {})
         
         return hints
