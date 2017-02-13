@@ -11,11 +11,13 @@ class MarkovChain(WhdStrategy):
 
     def __init__(self, context):
         WhdStrategy.__init__(self, context)
-        self.mc_order = 2
-        self.mc_delimiter = '+'
         vars = context['vars']
+        self.mc_order = vars.get('deoplete#sources#whd#order', 2)
+        self.mc_delimiter = vars.get('deoplete#sources#whd#delimiter', '+')
         self.learning_texts = vars.get(
-            'deoplete#sources#whd#learning_texts', [os.path.dirname(__file__) + '/./test/obama08.txt'])
+                'deoplete#sources#whd#learning_texts', 
+                [os.path.dirname(__file__) + '/./test/obama08.txt'])
+        self.learning_texts = [os.path.expandvars(x) for x in self.learning_texts]
         words = self._get_words_from_file()
         self.mc_knowledge = self._generate_dictionary(words)
 
@@ -23,10 +25,13 @@ class MarkovChain(WhdStrategy):
         # TODO handle loading check etc.
         ret = []
         for filename in self.learning_texts:
-            with open (filename) as f:
-                words = [re.findall(r"[\w']+", line) for line in f]
-                ret.extend([w for sub in words for w in sub])
-            #TODO handle file separation ret.extend(['' for i in range(0, self.mc_order)])
+            try:
+                with open (filename) as f:
+                    words = [re.findall(r"[\w']+", line) for line in f]
+                    ret.extend([w for sub in words for w in sub])
+                #TODO handle file separation ret.extend(['' for i in range(0, self.mc_order)])
+            except EnvironmentError:
+                print('WhD: error loading the file: ' + filename)
         return ret
 
     def _generate_dictionary(self, words):
